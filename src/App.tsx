@@ -9,7 +9,7 @@ function App() {
   return (
     <div className="mx-40 mt-10 mb-10">
       <OkrForm objectives={objectives} setObjectives={setObjectives} />
-      <OkrDisplay objectives={objectives} />
+      <OkrDisplay objectives={objectives} setObjectives={setObjectives} />
     </div>
   );
 }
