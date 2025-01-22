@@ -6,9 +6,9 @@ type KeyResultType = {
   metric: string;
 };
 
-type Objective = {
+type ObjectiveType = {
   objective: string;
   keyResults: KeyResultType[];
 };
 
-export { KeyResultType, Objective };
+export type { KeyResultType, ObjectiveType };

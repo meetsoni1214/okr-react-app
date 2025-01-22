@@ -1,31 +1,35 @@
 import { useState } from "react";
-import { KeyResultType, Objective } from "./types/OkrTypes";
+import { KeyResultType, ObjectiveType } from "../types/OkrTypes";
+import { addOkrDataToDb } from "../db/Okr-store";
 
-type OkrFormPropTypes = {
-  objectives: Objective[];
-  setObjectives: (objectives: Objective[]) => void;
+type OkrFormProps = {
+  objectives: ObjectiveType[];
+  setObjectives: (objectives: ObjectiveType[]) => void;
 };
 
-export default function OkrForm({
-  objectives,
-  setObjectives,
-}: OkrFormPropTypes) {
+const initialKeyResults = [
+  {
+    title: "",
+    initialValue: 0,
+    currentValue: 0,
+    targetValue: 0,
+    metric: "",
+  },
+];
+
+export default function OkrForm({ objectives, setObjectives }: OkrFormProps) {
   const [newObjective, setNewObjective] = useState<string>("");
-  const [keyResults, setKeyResults] = useState<KeyResultType[]>([
-    {
-      title: "",
-      initialValue: 0,
-      currentValue: 0,
-      targetValue: 0,
-      metric: "",
-    },
-  ]);
+  const [keyResults, setKeyResults] =
+    useState<KeyResultType[]>(initialKeyResults);
 
   function addObjective() {
-    setObjectives([...objectives, { objective: newObjective, keyResults }]);
-    console.log(objectives);
-    setNewObjective("");
-    setKeyResults([]);
+    const objectiveToBeAdded = { objective: newObjective, keyResults };
+    addOkrDataToDb(objectiveToBeAdded).then(() => {
+      setObjectives([...objectives, objectiveToBeAdded]);
+      console.log(objectives);
+      setNewObjective("");
+      setKeyResults(initialKeyResults);
+    });
   }
 
   function handleChange(name: string, index: number, value: string): void {
@@ -55,7 +59,7 @@ export default function OkrForm({
   }
 
   return (
-    <div className="border rounded-md border-gray-500 px-4 py-8 space-y-4">
+    <div className="border mb-2 rounded-md border-gray-500 px-4 py-8 space-y-4">
       <div className="gap-4 flex flex-col">
         <p className="font-semibold text-2xl">Create Objective Form</p>
         <div className="shadow-md bg-gray-100 p-4 rounded-md">
@@ -136,7 +140,7 @@ export default function OkrForm({
                   className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
                 />
                 <button
-                  className="bg-red-400 p-2 self-center text-white rounded-md hover:bg-red-600"
+                  className="bg-red-500 p-2 self-center text-white rounded-md hover:bg-red-600"
                   onClick={() => deleteKeyResult(index)}
                 >
                   Delete
@@ -146,7 +150,7 @@ export default function OkrForm({
           ))}
 
           <button
-            className="bg-blue-400 mt-4 p-2 self-center text-white rounded-md hover:bg-blue-600"
+            className="bg-blue-500 mt-4 p-2 self-center text-white rounded-md hover:bg-blue-600"
             onClick={addKeyResult}
           >
             Add Key Result
