@@ -7,8 +7,11 @@ type KeyResultType = {
 };
 
 type ObjectiveType = {
+  id: string;
   objective: string;
   keyResults: KeyResultType[];
 };
 
-export type { KeyResultType, ObjectiveType };
+type InsertObjectiveType = Omit<ObjectiveType, "id">;
+
+export type { KeyResultType, ObjectiveType, InsertObjectiveType };

@@ -23,12 +23,24 @@ export default function OkrForm({ objectives, setObjectives }: OkrFormProps) {
     useState<KeyResultType[]>(initialKeyResults);
 
   function addObjective() {
-    const objectiveToBeAdded = { objective: newObjective, keyResults };
-    addOkrDataToDb(objectiveToBeAdded).then(() => {
-      setObjectives([...objectives, objectiveToBeAdded]);
+    const objectiveToBeAdded = {
+      objective: newObjective,
+      keyResults,
+    };
+    addOkrDataToDb(objectiveToBeAdded).then((resu̥lt) => {
+      console.log("🚀 ~ addOkrDataToDb ~ resu̥lt:", resu̥lt);
+      setObjectives([...objectives, resu̥lt]);
       console.log(objectives);
       setNewObjective("");
-      setKeyResults(initialKeyResults);
+      setKeyResults([
+        {
+          title: "",
+          initialValue: 0,
+          currentValue: 0,
+          targetValue: 0,
+          metric: "",
+        },
+      ]);
     });
   }
 
