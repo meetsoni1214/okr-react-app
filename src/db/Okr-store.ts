@@ -32,7 +32,7 @@ async function deleteOkrFromDb(_id: string): Promise<ObjectiveType[]> {
 }
 
 async function updateOkrToDb(updatedOkr: ObjectiveType): Promise<ObjectiveType> {
-    const response = await fetch("http://localhost:3000/objectives", {
+    const response = await fetch(`http://localhost:3000/objectives/${updatedOkr.id}`, {
         method: "PUT",
         body: JSON.stringify(updatedOkr)
     })

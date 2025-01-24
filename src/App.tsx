@@ -1,33 +1,34 @@
-import {useContext, useEffect} from "react";
+import {useState} from "react";
 import OkrForm from "./components/OkrForm";
 import OkrDisplay from "./components/OkrDisplay";
-import {getOkrsData} from "./db/Okr-store";
-import {OkrContext} from "./provider/OkrProvider";
+import {ObjectiveType} from "./types/OkrTypes.ts";
+import {Route, Routes} from "react-router-dom"
+import NavBar from "./components/NavBar.tsx";
 
 function App() {
-    const {objectives, setObjectives} = useContext(OkrContext);
-    const isLoading = objectives === undefined;
 
-    useEffect(() => {
-        (async () => {
-            const objectivesResponse = await getOkrsData();
-            setObjectives(objectivesResponse);
-        })();
-    }, [setObjectives]);
-
-    console.log({objectives});
+    const [objectiveToBeUpdated, setObjectiveToBeUpdated] = useState<ObjectiveType | null>(null)
 
     return (
-        <div className="mx-40 mt-10 mb-10">
-            <OkrForm objectives={objectives ?? []} setObjectives={setObjectives}/>
-            {isLoading ? (
-                <p>Loading...</p>
-            ) : (
-                <OkrDisplay
-                    objectives={objectives ?? []}
-                    setObjectives={setObjectives}
-                />
-            )}
+        <div className="flex flex-col">
+            <NavBar/>
+            <div className="mx-40 mt-20 mb-10">
+                <Routes>
+                    <Route path="/" element={<>HEELLO INCUBEES!! :)</>}/>
+                    <Route path="/okrForm" element={
+                        <OkrForm objectiveToBeUpdated={objectiveToBeUpdated}/>
+                    }>
+                    </Route>
+                    <Route path="/okrForm/:id" element={
+                        <OkrForm objectiveToBeUpdated={objectiveToBeUpdated}/>
+                    }>
+                    </Route>
+                    <Route path="/displayOkrs" element={<OkrDisplay
+                        setObjectiveToBeUpdated={setObjectiveToBeUpdated}
+                    />}>
+                    </Route>
+                </Routes>
+            </div>
         </div>
     );
 }

@@ -1,27 +1,28 @@
-import {useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {KeyResultType, ObjectiveType} from "../types/OkrTypes";
-import {addOkrDataToDb} from "../db/Okr-store.ts";
+import {addOkrDataToDb, updateOkrToDb} from "../db/Okr-store.ts";
 import KeyResultInputs from "./KeyResultInputs.tsx";
+import {OkrContext} from "../provider/OkrProvider.tsx";
 
 type OkrFormProps = {
-    objectives: ObjectiveType[];
-    setObjectives: (objectives: ObjectiveType[]) => void;
+    objectiveToBeUpdated: ObjectiveType | null
 };
 
-const initialKeyResults = [
-    {
-        title: "",
-        initialValue: 0,
-        currentValue: 0,
-        targetValue: 0,
-        metric: "",
-    },
-];
-
-export default function OkrForm({objectives, setObjectives}: OkrFormProps) {
+export default function OkrForm({objectiveToBeUpdated}: OkrFormProps) {
+    const {objectives, setObjectives} = useContext(OkrContext);
     const [newObjective, setNewObjective] = useState<string>("");
     const [keyResults, setKeyResults] =
         useState<KeyResultType[]>(initialKeyResults);
+
+    const isUpdateObjectiveNotAvailable = (objectiveToBeUpdated === null);
+
+    useEffect(() => {
+        if (!isUpdateObjectiveNotAvailable) {
+            console.log(objectiveToBeUpdated);
+            setNewObjective(objectiveToBeUpdated.objective)
+            setKeyResults(objectiveToBeUpdated.keyResults)
+        }
+    }, [objectiveToBeUpdated]);
 
     function addObjective() {
         const objectiveToBeAdded = {
@@ -30,7 +31,6 @@ export default function OkrForm({objectives, setObjectives}: OkrFormProps) {
         };
         addOkrDataToDb(objectiveToBeAdded).then((result) => {
             setObjectives([...objectives, result]);
-            console.log(objectives);
             setNewObjective("");
             setKeyResults([
                 {
@@ -42,6 +42,29 @@ export default function OkrForm({objectives, setObjectives}: OkrFormProps) {
                 },
             ]);
         });
+    }
+
+    function updateObjective() {
+        if (!objectiveToBeUpdated) return
+        const updatedObjective = {
+            id: objectiveToBeUpdated?.id,
+            objective: newObjective,
+            keyResults,
+        };
+        updateOkrToDb(updatedObjective).then((result) => {
+            const updatedObjectives = objectives.map((obj) => obj.id === result.id ? result : obj)
+            setObjectives(updatedObjectives);
+            setNewObjective("");
+            setKeyResults([
+                {
+                    title: "",
+                    initialValue: 0,
+                    currentValue: 0,
+                    targetValue: 0,
+                    metric: "",
+                },
+            ]);
+        })
     }
 
 
@@ -96,7 +119,7 @@ export default function OkrForm({objectives, setObjectives}: OkrFormProps) {
                     {keyResults.map((keyResult, index) => (
                         <div key={index} className=" bg-gray-100 shadow-md p-4 rounded-md flex flex-col gap-2 mt-4"
                         >
-                            <KeyResultInputs keyResult={keyResult} index={index} handleChange={handleChange} />
+                            <KeyResultInputs keyResult={keyResult} index={index} handleChange={handleChange}/>
                             <div className="flex justify-between">
                                 <input
                                     type="text"
@@ -125,11 +148,21 @@ export default function OkrForm({objectives, setObjectives}: OkrFormProps) {
                 </div>
                 <button
                     className="bg-green-500 p-2 self-center text-white rounded-md hover:bg-green-600"
-                    onClick={addObjective}
+                    onClick={isUpdateObjectiveNotAvailable ? addObjective : updateObjective}
                 >
-                    Add objective
+                    {isUpdateObjectiveNotAvailable ? "Add objective" : "Update Objective"}
                 </button>
             </div>
         </div>
     );
 }
+
+const initialKeyResults = [
+    {
+        title: "",
+        initialValue: 0,
+        currentValue: 0,
+        targetValue: 0,
+        metric: "",
+    },
+];

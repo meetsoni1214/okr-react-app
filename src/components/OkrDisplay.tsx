@@ -1,13 +1,14 @@
-import {useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {KeyResultType, ObjectiveType} from "../types/OkrTypes";
 import {CircleX, PackageOpen} from "lucide-react";
 import KeyResultInputs from "./KeyResultInputs.tsx";
 import KeyResultDisplay from "./KeyResultDisplay.tsx";
-import {deleteOkrFromDb} from "../db/Okr-store.ts"
+import {deleteOkrFromDb, getOkrsData} from "../db/Okr-store.ts"
+import {Link} from "react-router-dom";
+import {OkrContext} from "../provider/OkrProvider.tsx";
 
 type OkrDisplayProps = {
-    objectives: ObjectiveType[];
-    setObjectives: (objectives: ObjectiveType[]) => void;
+    setObjectiveToBeUpdated: (objective: ObjectiveType) => void
 };
 
 const emptyKeyResult = {
@@ -18,7 +19,21 @@ const emptyKeyResult = {
     metric: "",
 };
 
-function OkrDisplay({objectives, setObjectives}: OkrDisplayProps) {
+
+function OkrDisplay({setObjectiveToBeUpdated}: OkrDisplayProps) {
+
+    const {objectives, setObjectives} = useContext(OkrContext);
+    useEffect(() => {
+        (async () => {
+            const objectivesResponse = await getOkrsData();
+            setObjectives(objectivesResponse);
+        })();
+    }, [setObjectives]);
+
+    function handleUpdateObjective(objectiveToBeUpdated: ObjectiveType) {
+        setObjectiveToBeUpdated(objectiveToBeUpdated)
+    }
+
     function handleDeleteKeyResult(objIndex: number, krIndex: number) {
         const krs: KeyResultType[] | undefined = objectives
             .find((_, index) => index === objIndex)
@@ -37,7 +52,6 @@ function OkrDisplay({objectives, setObjectives}: OkrDisplayProps) {
     }
 
     const [isKrModalOpen, setIsKrModalOpen] = useState<boolean>(false);
-    // const [isObjModalOpen, setisObjModalOpen] = useState<boolean>(false);
     const [keyResult, setKeyResult] = useState<KeyResultType>(emptyKeyResult);
 
     function handleKrChange(name: string, index: number, value: string): void {
@@ -77,7 +91,6 @@ function OkrDisplay({objectives, setObjectives}: OkrDisplayProps) {
         }
     }
 
-    console.log(objectives);
 
     return (
         <div className="border rounded-md border-gray-500 p-4 mt-4">
@@ -89,9 +102,13 @@ function OkrDisplay({objectives, setObjectives}: OkrDisplayProps) {
                                 obj.objective
                             }`}</p>
                             <div className="space-x-4">
-                                <button className="bg-gray-500 p-2 text-white rounded-md hover:bg-gray-600">
-                                    Update Objective
-                                </button>
+                                <Link to={`/okrForm/${obj.id}`}>
+                                    <button onClick={() => handleUpdateObjective(obj)}
+                                            className="bg-gray-500 p-2 text-white rounded-md hover:bg-gray-600">
+                                        Update Objective
+                                    </button>
+                                </Link>
+
                                 <button className="bg-red-500 p-2 text-white rounded-md hover:bg-red-600"
                                         onClick={() => handleDeleteObjective(obj.id)}
                                 >
@@ -110,20 +127,6 @@ function OkrDisplay({objectives, setObjectives}: OkrDisplayProps) {
                                 <div key={krIndex}>
                                     <KeyResultDisplay kr={kr} onClick={() =>
                                         handleDeleteKeyResult(objectiveIndex, krIndex)}/>
-                                    {/* {isObjModalOpen && (
-                    <div className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
-                      <div className="bg-white rounded-md p-4 ">
-                        <div className=" flex flex-col gap-2">
-                          <button
-                            onClick={() => setIsKrModalOpen(false)}
-                            className="self-end text-red-500"
-                          >
-                            <CircleX />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )} */}
                                     {isKrModalOpen && (
                                         <div
                                             className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">

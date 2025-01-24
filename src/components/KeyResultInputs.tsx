@@ -30,6 +30,7 @@ function KeyResultInputs(
                     type="number"
                     placeholder="Intial Value"
                     name="initialValue"
+                    value={keyResult.initialValue}
                     onChange={(e) =>
                         handleChange(e.target.name, index, e.target.value)
                     }
@@ -39,6 +40,7 @@ function KeyResultInputs(
                     type="number"
                     placeholder="Current Value"
                     name="currentValue"
+                    value={keyResult.currentValue}
                     onChange={(e) =>
                         handleChange(e.target.name, index, e.target.value)
                     }
@@ -47,6 +49,7 @@ function KeyResultInputs(
                 <input
                     type="number"
                     placeholder="Target Value"
+                    value={keyResult.targetValue}
                     name="targetValue"
                     onChange={(e) =>
                         handleChange(e.target.name, index, e.target.value)
