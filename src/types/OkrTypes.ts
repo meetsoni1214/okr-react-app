@@ -1,4 +1,5 @@
 type KeyResultType = {
+  id: number
   title: string;
   initialValue: number;
   currentValue: number;
@@ -7,11 +8,26 @@ type KeyResultType = {
 };
 
 type ObjectiveType = {
-  id: string;
+  id: number;
   objective: string;
   keyResults: KeyResultType[];
 };
 
-type InsertObjectiveType = Omit<ObjectiveType, "id">;
-
-export type { KeyResultType, ObjectiveType, InsertObjectiveType };
+type ObjectiveResponseType = {
+  id: number;
+  title: string;
+  key_results: KeyResultResponseType[];
+}
+type KeyResultResponseType = {
+  id: number;
+  title: string;
+  initial_value: number;
+  current_value: number;
+  target_value: number;
+  metric: string;
+  objective: ObjectiveResponseType;
+  objective_id: number
+}
+type InsertObjectiveType = Omit<ObjectiveResponseType, "id" | "key_results">;
+type InsertKeyResultType = Omit<KeyResultResponseType, "id" | "objective">;
+export type { KeyResultType, ObjectiveType, InsertObjectiveType, ObjectiveResponseType, KeyResultResponseType, InsertKeyResultType };

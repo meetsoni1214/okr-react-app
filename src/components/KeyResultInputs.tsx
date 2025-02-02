@@ -2,14 +2,12 @@ import {KeyResultType} from "../types/OkrTypes.ts";
 
 type KeyResultInputProps = {
     keyResult: KeyResultType;
-    index: number;
-    handleChange: (name: string, index: number, value: string) => void;
+    handleChange: (name: string, value: string) => void;
 };
 
 function KeyResultInputs(
     {
         keyResult,
-        index,
         handleChange,
     }: KeyResultInputProps
 ) {
@@ -21,7 +19,7 @@ function KeyResultInputs(
                 value={keyResult.title}
                 name="title"
                 onChange={(e) =>
-                    handleChange(e.target.name, index, e.target.value)
+                    handleChange(e.target.name,e.target.value)
                 }
                 className="border border-gray-400 px-2 py-1 focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
             />
@@ -32,7 +30,7 @@ function KeyResultInputs(
                     name="initialValue"
                     value={keyResult.initialValue}
                     onChange={(e) =>
-                        handleChange(e.target.name, index, e.target.value)
+                        handleChange(e.target.name, e.target.value)
                     }
                     className="border border-gray-400 w-full px-2 py-1 focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
                 />
@@ -42,7 +40,7 @@ function KeyResultInputs(
                     name="currentValue"
                     value={keyResult.currentValue}
                     onChange={(e) =>
-                        handleChange(e.target.name, index, e.target.value)
+                        handleChange(e.target.name, e.target.value)
                     }
                     className="border border-gray-400 px-2 py-1 w-full focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
                 />
@@ -52,7 +50,7 @@ function KeyResultInputs(
                     value={keyResult.targetValue}
                     name="targetValue"
                     onChange={(e) =>
-                        handleChange(e.target.name, index, e.target.value)
+                        handleChange(e.target.name, e.target.value)
                     }
                     className="border border-gray-400 px-2 py-1 w-full focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
                 />

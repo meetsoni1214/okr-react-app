@@ -1,17 +1,20 @@
 import {useContext, useEffect, useState} from "react";
-import {KeyResultType, ObjectiveType} from "../types/OkrTypes";
+import {InsertKeyResultType, InsertObjectiveType, KeyResultType, ObjectiveType} from "../types/OkrTypes";
 import {CircleX, PackageOpen} from "lucide-react";
 import KeyResultInputs from "./KeyResultInputs.tsx";
 import KeyResultDisplay from "./KeyResultDisplay.tsx";
-import {deleteOkrFromDb, getOkrsData} from "../db/Okr-store.ts"
-import {Link} from "react-router-dom";
+import {
+    addKeyResultsToDb,
+    deleteKeyResultFromDb,
+    deleteKeyResultsFromDb,
+    deleteOkrFromDb,
+    getOkrsData,
+    updateOkrToDb
+} from "../db/Okr-store.ts"
 import {OkrContext} from "../provider/OkrProvider.tsx";
 
-type OkrDisplayProps = {
-    setObjectiveToBeUpdated: (objective: ObjectiveType) => void
-};
-
 const emptyKeyResult = {
+    id: -1,
     title: "",
     initialValue: 0,
     currentValue: 0,
@@ -20,77 +23,123 @@ const emptyKeyResult = {
 };
 
 
-function OkrDisplay({setObjectiveToBeUpdated}: OkrDisplayProps) {
+function OkrDisplay() {
+
 
     const {objectives, setObjectives} = useContext(OkrContext);
+    const [selectedObjectiveId, setSelectedObjectiveId] = useState<number>(-1);
+    const [updateObjectiveId, setUpdateObjectiveId] = useState<number>(-1);
+    const [keyResult, setKeyResult] = useState<KeyResultType>(emptyKeyResult);
+    const [objectiveTitle, setObjectiveTitle] = useState<string>("");
+
     useEffect(() => {
         (async () => {
             const objectivesResponse = await getOkrsData();
-            setObjectives(objectivesResponse);
+            const objectives = objectivesResponse.map((obj) => {
+                const keyResults: KeyResultType[] = obj.key_results.map((kr) => {
+                    const keyResult: KeyResultType = {
+                        id: kr.id,
+                        title: kr.title,
+                        initialValue: kr.initial_value,
+                        currentValue: kr.current_value,
+                        targetValue: kr.target_value,
+                        metric: kr.metric
+                    }
+                    return keyResult;
+                });
+                const objective: ObjectiveType = {
+                    id: obj.id,
+                    objective: obj.title,
+                    keyResults: keyResults
+                };
+                return objective;
+            })
+            setObjectives(objectives);
         })();
     }, [setObjectives]);
 
-    function handleUpdateObjective(objectiveToBeUpdated: ObjectiveType) {
-        setObjectiveToBeUpdated(objectiveToBeUpdated)
-    }
+    async function handleDeleteKeyResult(objId: number, krId: number) {
+        await deleteKeyResultFromDb(krId);
+        const objectiveToBeUpdated: ObjectiveType | undefined = objectives.find(
+            (objective) => objective.id === objId
+        );
+        if (objectiveToBeUpdated === undefined) return;
 
-    function handleDeleteKeyResult(objIndex: number, krIndex: number) {
-        const krs: KeyResultType[] | undefined = objectives
-            .find((_, index) => index === objIndex)
-            ?.keyResults?.filter((_, index) => index !== krIndex);
-
-        if (krs === undefined) return;
+        const krs: KeyResultType[] = objectiveToBeUpdated.keyResults.filter((kr) => kr.id !== krId);
 
         const objective: ObjectiveType = {
-            ...objectives[objIndex],
+            ...objectiveToBeUpdated,
             keyResults: krs,
         };
-        const updatedObjs = objectives.map((obj, ind) => {
-            return ind === objIndex ? objective : obj;
+        const updatedObjs = objectives.map((obj) => {
+            return obj.id === objId ? objective : obj;
         });
         setObjectives(updatedObjs);
     }
 
-    const [isKrModalOpen, setIsKrModalOpen] = useState<boolean>(false);
-    const [keyResult, setKeyResult] = useState<KeyResultType>(emptyKeyResult);
+    async function handleUpdateObjective(id: number) {
+        const updatedObjective: InsertObjectiveType = {
+            title: objectiveTitle
+        };
+        await updateOkrToDb(updatedObjective, id);
+        const objectiveToBeUpdated = objectives.find((obj) => obj.id === id);
+        if (objectiveToBeUpdated === undefined) return;
+        const objectiveToBeAdded = {
+            ...objectiveToBeUpdated,
+            objective: objectiveTitle
+        };
+        const newObjs = objectives.map((obj) => {
+            return (obj.id === id) ? objectiveToBeAdded : obj;
+        })
+        setObjectives(newObjs);
+        setUpdateObjectiveId(-1);
+        setObjectiveTitle("");
+    }
 
-    function handleKrChange(name: string, index: number, value: string): void {
+    function handleKrChange(name: string, value: string): void {
         const updatedKr = {...keyResult, [name]: value};
-        console.log(index);
-
         setKeyResult(updatedKr);
     }
 
-    function handleAddKeyResult(objIndex: number) {
-        const krs: KeyResultType[] | undefined = objectives.find(
-            (_, index) => index === objIndex
-        )?.keyResults;
+    async function handleAddKeyResult(objId: number) {
+        const keyResultToBeAdded: InsertKeyResultType = {
+            title: keyResult.title,
+            initial_value: Number(keyResult.initialValue),
+            current_value: Number(keyResult.currentValue),
+            target_value: Number(keyResult.targetValue),
+            metric: keyResult.metric,
+            objective_id: objId
+        }
+        await addKeyResultsToDb([keyResultToBeAdded]);
+        const objectiveToBeUpdated: ObjectiveType | undefined = objectives.find(
+            (objective) => objective.id === objId
+        );
 
-        if (krs === undefined) return;
+        if (objectiveToBeUpdated === undefined) return;
 
+        const krs: KeyResultType[] = objectiveToBeUpdated.keyResults;
         krs.push(keyResult);
-
         const updatedObjective: ObjectiveType = {
-            ...objectives[objIndex],
+            ...objectiveToBeUpdated,
             keyResults: krs,
         };
-        const updatedObjs = objectives.map((obj, ind) => {
-            return ind === objIndex ? updatedObjective : obj;
+        const updatedObjs = objectives.map((obj) => {
+            return obj.id === objId ? updatedObjective : obj;
         });
         setObjectives(updatedObjs);
-        setIsKrModalOpen(false);
+        setSelectedObjectiveId(-1);
         setKeyResult(emptyKeyResult);
     }
 
-    const handleDeleteObjective = async (id: string) => {
+    const handleDeleteObjective = async (id: number) => {
         try {
+            await deleteKeyResultsFromDb(id);
             await deleteOkrFromDb(id);
             setObjectives(objectives.filter((obj) => id !== obj.id))
         } catch (error) {
             alert(error);
         }
     }
-
 
     return (
         <div className="border rounded-md border-gray-500 p-4 mt-4">
@@ -102,69 +151,96 @@ function OkrDisplay({setObjectiveToBeUpdated}: OkrDisplayProps) {
                                 obj.objective
                             }`}</p>
                             <div className="space-x-4">
-                                <Link to={`/okrForm/${obj.id}`}>
-                                    <button onClick={() => handleUpdateObjective(obj)}
-                                            className="bg-gray-500 p-2 text-white rounded-md hover:bg-gray-600">
-                                        Update Objective
-                                    </button>
-                                </Link>
-
+                                <button onClick={() => setUpdateObjectiveId(obj.id)}
+                                        className="bg-gray-500 p-2 text-white rounded-md hover:bg-gray-600">
+                                    Update Objective
+                                </button>
                                 <button className="bg-red-500 p-2 text-white rounded-md hover:bg-red-600"
                                         onClick={() => handleDeleteObjective(obj.id)}
                                 >
                                     Delete Objective
                                 </button>
                                 <button
-                                    onClick={() => setIsKrModalOpen(true)}
+                                    onClick={() => setSelectedObjectiveId(obj.id)}
                                     className="bg-blue-500 p-2 text-white rounded-md hover:bg-blue-600"
                                 >
                                     Add Key Result
                                 </button>
                             </div>
                         </div>
-                        {obj.keyResults.map((kr, krIndex) => {
+                        {obj.keyResults.map((kr) => {
                             return (
-                                <div key={krIndex}>
+                                <div key={kr.id}>
                                     <KeyResultDisplay kr={kr} onClick={() =>
-                                        handleDeleteKeyResult(objectiveIndex, krIndex)}/>
-                                    {isKrModalOpen && (
-                                        <div
-                                            className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
-                                            <div className="bg-white rounded-md p-4 ">
-                                                <div className=" flex flex-col gap-2">
-                                                    <button
-                                                        onClick={() => setIsKrModalOpen(false)}
-                                                        className="self-end text-red-500"
-                                                    >
-                                                        <CircleX/>
-                                                    </button>
-                                                    <KeyResultInputs index={krIndex} handleChange={handleKrChange}
-                                                                     keyResult={keyResult}/>
-                                                    <div className="flex justify-between">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Metric Type"
-                                                            name="metric"
-                                                            value={keyResult.metric}
-                                                            onChange={(e) =>
-                                                                handleKrChange(e.target.name, krIndex, e.target.value)
-                                                            }
-                                                            className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
-                                                        />
-                                                        <button
-                                                            onClick={() => handleAddKeyResult(objectiveIndex)}
-                                                            className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
-                                                        >
-                                                            Add
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                        handleDeleteKeyResult(obj.id, kr.id)}/>
                                 </div>
                             );
                         })}
+                        {(updateObjectiveId === obj.id) && (
+                            <div
+                                className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
+                                <div className="bg-white rounded-md p-4 ">
+                                    <div className=" flex flex-col gap-2">
+                                        <button
+                                            onClick={() => setUpdateObjectiveId(-1)}
+                                            className="self-end text-red-500"
+                                        >
+                                            <CircleX/>
+                                        </button>
+                                        <input
+                                            type="text"
+                                            placeholder="Objective title"
+                                            name="metric"
+                                            value={objectiveTitle}
+                                            onChange={(e) => setObjectiveTitle(e.target.value)}
+                                            className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
+                                        />
+                                        <button
+                                            onClick={() => handleUpdateObjective(updateObjectiveId)}
+                                            className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
+                                        >
+                                            Update
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                        }
+                        {(selectedObjectiveId === obj.id) && (
+                            <div
+                                className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
+                                <div className="bg-white rounded-md p-4 ">
+                                    <div className=" flex flex-col gap-2">
+                                        <button
+                                            onClick={() => setSelectedObjectiveId(-1)}
+                                            className="self-end text-red-500"
+                                        >
+                                            <CircleX/>
+                                        </button>
+                                        <KeyResultInputs handleChange={handleKrChange}
+                                                         keyResult={keyResult}/>
+                                        <div className="flex justify-between">
+                                            <input
+                                                type="text"
+                                                placeholder="Metric Type"
+                                                name="metric"
+                                                value={keyResult.metric}
+                                                onChange={(e) =>
+                                                    handleKrChange(e.target.name, e.target.value)
+                                                }
+                                                className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
+                                            />
+                                            <button
+                                                onClick={() => handleAddKeyResult(selectedObjectiveId)}
+                                                className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))
             ) : (
