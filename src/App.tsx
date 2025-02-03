@@ -1,13 +1,10 @@
-import {useState} from "react";
 import OkrForm from "./components/OkrForm";
 import OkrDisplay from "./components/OkrDisplay";
-import {ObjectiveType} from "./types/OkrTypes.ts";
 import {Route, Routes} from "react-router-dom"
 import NavBar from "./components/NavBar.tsx";
 
 function App() {
 
-    const [objectiveToBeUpdated, setObjectiveToBeUpdated] = useState<ObjectiveType | null>(null)
 
     return (
         <div className="flex flex-col">
@@ -16,16 +13,14 @@ function App() {
                 <Routes>
                     <Route path="/" element={<>HEELLO INCUBEES!! :)</>}/>
                     <Route path="/okrForm" element={
-                        <OkrForm objectiveToBeUpdated={objectiveToBeUpdated}/>
+                        <OkrForm />
                     }>
                     </Route>
                     <Route path="/okrForm/:id" element={
-                        <OkrForm objectiveToBeUpdated={objectiveToBeUpdated}/>
+                        <OkrForm />
                     }>
                     </Route>
-                    <Route path="/displayOkrs" element={<OkrDisplay
-                        setObjectiveToBeUpdated={setObjectiveToBeUpdated}
-                    />}>
+                    <Route path="/displayOkrs" element={<OkrDisplay />}>
                     </Route>
                 </Routes>
             </div>

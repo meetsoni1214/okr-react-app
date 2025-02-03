@@ -141,6 +141,15 @@ function OkrDisplay() {
         }
     }
 
+    function handleUpdateObjectiveOnClick(obj: ObjectiveType) {
+        setObjectiveTitle(obj.objective);
+        setUpdateObjectiveId(obj.id);
+    }
+
+    function handleUpdateKeyResult(objectiveId: number, keyResultId: number) {
+
+    }
+
     return (
         <div className="border rounded-md border-gray-500 p-4 mt-4">
             {objectives.length > 0 ? (
@@ -151,7 +160,7 @@ function OkrDisplay() {
                                 obj.objective
                             }`}</p>
                             <div className="space-x-4">
-                                <button onClick={() => setUpdateObjectiveId(obj.id)}
+                                <button onClick={() => handleUpdateObjectiveOnClick(obj)}
                                         className="bg-gray-500 p-2 text-white rounded-md hover:bg-gray-600">
                                     Update Objective
                                 </button>
@@ -171,7 +180,9 @@ function OkrDisplay() {
                         {obj.keyResults.map((kr) => {
                             return (
                                 <div key={kr.id}>
-                                    <KeyResultDisplay kr={kr} onClick={() =>
+                                    <KeyResultDisplay kr={kr}
+                                                      onUpdateClick={() => handleUpdateKeyResult(obj.id, kr.id)}
+                                                      onDeleteClick={() =>
                                         handleDeleteKeyResult(obj.id, kr.id)}/>
                                 </div>
                             );
