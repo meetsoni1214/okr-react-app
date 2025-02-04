@@ -1,5 +1,11 @@
 import {useContext, useEffect, useState} from "react";
-import {InsertKeyResultType, InsertObjectiveType, KeyResultType, ObjectiveType} from "../types/OkrTypes";
+import {
+    InsertKeyResultType,
+    InsertObjectiveType,
+    KeyResultType,
+    ObjectiveType,
+    UpdateKeyResultType
+} from "../types/OkrTypes";
 import {CircleX, PackageOpen} from "lucide-react";
 import KeyResultInputs from "./KeyResultInputs.tsx";
 import KeyResultDisplay from "./KeyResultDisplay.tsx";
@@ -8,7 +14,7 @@ import {
     deleteKeyResultFromDb,
     deleteKeyResultsFromDb,
     deleteOkrFromDb,
-    getOkrsData,
+    getOkrsData, updateKeyResultToDb,
     updateOkrToDb
 } from "../db/Okr-store.ts"
 import {OkrContext} from "../provider/OkrProvider.tsx";
@@ -146,8 +152,30 @@ function OkrDisplay() {
         setUpdateObjectiveId(obj.id);
     }
 
-    function handleUpdateKeyResult(objectiveId: number, keyResultId: number) {
+    async function handleUpdateKeyResult(objectiveId: number) {
+        const kr: UpdateKeyResultType = {
+            title: keyResult.title,
+            current_value: Number(keyResult.currentValue),
+            target_value: Number(keyResult.targetValue),
+            initial_value: Number(keyResult.initialValue),
+            metric: keyResult.metric
+        };
+        await updateKeyResultToDb(kr, keyResult.id);
 
+        const objectiveToBeUpdated = objectives.find((obj) => obj.id === objectiveId);
+
+        if (objectiveToBeUpdated === undefined) return;
+
+        const updatedKrs = objectiveToBeUpdated.keyResults.map((kr) => {
+            return kr.id === keyResult.id ? keyResult : kr;
+        });
+        const updatedObjective: ObjectiveType = {...objectiveToBeUpdated, keyResults: updatedKrs};
+
+        const updatedObjectives = objectives.map((obj) => {
+            return obj.id === objectiveId ? updatedObjective : obj;
+        });
+        setObjectives(updatedObjectives);
+        setKeyResult(emptyKeyResult);
     }
 
     return (
@@ -181,9 +209,43 @@ function OkrDisplay() {
                             return (
                                 <div key={kr.id}>
                                     <KeyResultDisplay kr={kr}
-                                                      onUpdateClick={() => handleUpdateKeyResult(obj.id, kr.id)}
-                                                      onDeleteClick={() =>
-                                        handleDeleteKeyResult(obj.id, kr.id)}/>
+                                                      onUpdateClick={() => setKeyResult(kr)}
+                                                      onDeleteClick={() => handleDeleteKeyResult(obj.id, kr.id)}/>
+                                    {(keyResult.id === kr.id) && (
+                                        <div
+                                            className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
+                                            <div className="bg-white rounded-md p-4 ">
+                                                <div className=" flex flex-col gap-2">
+                                                    <button
+                                                        onClick={() => setKeyResult(emptyKeyResult)}
+                                                        className="self-end text-red-500"
+                                                    >
+                                                        <CircleX/>
+                                                    </button>
+                                                    <KeyResultInputs handleChange={handleKrChange}
+                                                                     keyResult={keyResult}/>
+                                                    <div className="flex justify-between">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Metric Type"
+                                                            name="metric"
+                                                            value={keyResult.metric}
+                                                            onChange={(e) =>
+                                                                handleKrChange(e.target.name, e.target.value)
+                                                            }
+                                                            className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
+                                                        />
+                                                        <button
+                                                            onClick={() => handleUpdateKeyResult(obj.id)}
+                                                            className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
+                                                        >
+                                                            Add
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}

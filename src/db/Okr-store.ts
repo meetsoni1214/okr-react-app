@@ -1,4 +1,4 @@
-import {InsertKeyResultType, InsertObjectiveType, ObjectiveResponseType} from "../types/OkrTypes";
+import {InsertKeyResultType, InsertObjectiveType, ObjectiveResponseType, UpdateKeyResultType} from "../types/OkrTypes";
 
 const HTTP_STATUS = {
     not_found: 404
@@ -45,6 +45,17 @@ async function updateOkrToDb(updatedOkr: InsertObjectiveType, id: number): Promi
     await response.json()
 }
 
+async function updateKeyResultToDb(updatedKeyResult: UpdateKeyResultType, id: number): Promise<void> {
+    const response = await fetch(`http://localhost:3001/key-results/${id}`, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        method: "PATCH",
+        body: JSON.stringify(updatedKeyResult)
+    });
+    await response.json();
+}
+
 async function addKeyResultsToDb(keyResults: InsertKeyResultType[]): Promise<void> {
     const response = await fetch(`http://localhost:3001/key-results/`, {
         method: "POST",
@@ -73,4 +84,4 @@ async function deleteKeyResultsFromDb(objective_id: number): Promise<void> {
     await response.json();
 }
 
-export {getOkrsData, addOkrDataToDb, updateOkrToDb, deleteOkrFromDb, addKeyResultsToDb, deleteKeyResultFromDb, deleteKeyResultsFromDb};
+export {getOkrsData, addOkrDataToDb, updateOkrToDb, deleteOkrFromDb, addKeyResultsToDb, deleteKeyResultFromDb, deleteKeyResultsFromDb, updateKeyResultToDb};

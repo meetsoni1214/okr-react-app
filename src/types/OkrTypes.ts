@@ -30,4 +30,5 @@ type KeyResultResponseType = {
 }
 type InsertObjectiveType = Omit<ObjectiveResponseType, "id" | "key_results">;
 type InsertKeyResultType = Omit<KeyResultResponseType, "id" | "objective">;
-export type { KeyResultType, ObjectiveType, InsertObjectiveType, ObjectiveResponseType, KeyResultResponseType, InsertKeyResultType };
+type UpdateKeyResultType = Omit<KeyResultResponseType, "id" | "objective" | "objective_id">;
+export type { KeyResultType, ObjectiveType, InsertObjectiveType, ObjectiveResponseType, KeyResultResponseType, InsertKeyResultType, UpdateKeyResultType };
