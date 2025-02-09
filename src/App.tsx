@@ -16,10 +16,6 @@ function App() {
                         <OkrForm />
                     }>
                     </Route>
-                    <Route path="/okrForm/:id" element={
-                        <OkrForm />
-                    }>
-                    </Route>
                     <Route path="/displayOkrs" element={<OkrDisplay />}>
                     </Route>
                 </Routes>

@@ -29,7 +29,7 @@ async function deleteOkrFromDb(_id: number): Promise<void>{
         method: "DELETE",
     })
     if (response.status === HTTP_STATUS.not_found) {
-        throw new Error("Objective Not Found!")
+        throw new Error("ObjectiveView.tsx Not Found!")
     }
     return await response.json();
 }
@@ -58,9 +58,12 @@ async function updateKeyResultToDb(updatedKeyResult: UpdateKeyResultType, id: nu
 
 async function addKeyResultsToDb(keyResults: InsertKeyResultType[]): Promise<void> {
     const response = await fetch(`http://localhost:3001/key-results/`, {
+        headers: {
+            "Content-Type": "application/json",
+        },
         method: "POST",
         body: JSON.stringify(keyResults)
-    })
+    });
     await response.json();
 }
 
