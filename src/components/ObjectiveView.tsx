@@ -1,6 +1,5 @@
 import {
     InsertKeyResultType,
-    InsertObjectiveType,
     KeyResultType,
     ObjectiveType,
     UpdateKeyResultType
@@ -12,25 +11,15 @@ import {
     deleteKeyResultsFromDb,
     deleteOkrFromDb,
     updateKeyResultToDb,
-    updateOkrToDb
 } from "../db/Okr-store.ts";
 import {OkrContext} from "../provider/OkrProvider.tsx";
 import KeyResultDisplay from "./KeyResultDisplay.tsx";
-import {CircleX} from "lucide-react";
-import KeyResultInputs from "./KeyResultInputs.tsx";
+import AddUpdateKeyResultModal from "./AddUpdateKeyResultModal.tsx";
+import UpdateObjectiveModal from "./UpdateObjectiveModal.tsx";
 
 type ObjectiveProps = {
     obj: ObjectiveType,
     objectiveIndex: number
-};
-
-const emptyKeyResult = {
-    id: -1,
-    title: "",
-    initialValue: 0,
-    currentValue: 0,
-    targetValue: 0,
-    metric: "",
 };
 
 type IsAddKrModal = {
@@ -42,6 +31,14 @@ type IsUpdateKrModal = {
     objectiveId: number,
     show: boolean
 }
+const emptyKeyResult = {
+    id: -1,
+    title: "",
+    initialValue: 0,
+    currentValue: 0,
+    targetValue: 0,
+    metric: "",
+};
 
 function ObjectiveView({
                            obj,
@@ -89,11 +86,6 @@ function ObjectiveView({
         setObjectives(updatedObjs);
     }
 
-    function handleKrChange(name: string, value: string): void {
-        const updatedKr = {...keyResult, [name]: value};
-        setKeyResult(updatedKr);
-    }
-
     async function handleUpdateKeyResult(objectiveId: number) {
         const kr: UpdateKeyResultType = {
             title: keyResult.title,
@@ -119,25 +111,6 @@ function ObjectiveView({
         setObjectives(updatedObjectives);
         setKeyResult(emptyKeyResult);
         setShowUpdateKrModal({objectiveId: -1, show: false})
-    }
-
-    async function handleUpdateObjective(id: number) {
-        const updatedObjective: InsertObjectiveType = {
-            title: objectiveTitle
-        };
-        await updateOkrToDb(updatedObjective, id);
-        const objectiveToBeUpdated = objectives.find((obj) => obj.id === id);
-        if (objectiveToBeUpdated === undefined) return;
-        const objectiveToBeAdded = {
-            ...objectiveToBeUpdated,
-            objective: objectiveTitle
-        };
-        const newObjs = objectives.map((obj) => {
-            return (obj.id === id) ? objectiveToBeAdded : obj;
-        })
-        setObjectives(newObjs);
-        setUpdateObjectiveId(-1);
-        setObjectiveTitle("");
     }
 
     async function handleAddKeyResult(objId: number) {
@@ -205,107 +178,35 @@ function ObjectiveView({
                                           }}
                                           onDeleteClick={() => handleDeleteKeyResult(obj.id, kr.id)}/>
                         {(showUpdateKrModal.show) && (
-                            <div
-                                className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
-                                <div className="bg-white rounded-md p-4 ">
-                                    <div className=" flex flex-col gap-2">
-                                        <button
-                                            onClick={() => setShowUpdateKrModal({objectiveId: -1, show: false})}
-                                            className="self-end text-red-500"
-                                        >
-                                            <CircleX/>
-                                        </button>
-                                        <KeyResultInputs handleChange={handleKrChange}
-                                                         keyResult={keyResult}/>
-                                        <div className="flex justify-between">
-                                            <input
-                                                type="text"
-                                                placeholder="Metric Type"
-                                                name="metric"
-                                                value={keyResult.metric}
-                                                onChange={(e) =>
-                                                    handleKrChange(e.target.name, e.target.value)
-                                                }
-                                                className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
-                                            />
-                                            <button
-                                                onClick={() => handleUpdateKeyResult(showUpdateKrModal.objectiveId)}
-                                                className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
-                                            >
-                                                Update
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <AddUpdateKeyResultModal
+                                keyResult={keyResult}
+                                setKeyResult={setKeyResult}
+                                closeModal={() => {
+                                    setKeyResult(emptyKeyResult);
+                                    setShowUpdateKrModal({objectiveId: -1, show: false});
+                                }}
+                                onSubmitClick={() => handleUpdateKeyResult(showUpdateKrModal.objectiveId)}
+                                btnText="Update" />
                         )}
                     </div>
                 );
             })}
             {(updateObjectiveId === obj.id) && (
-                <div
-                    className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
-                    <div className="bg-white rounded-md p-4 ">
-                        <div className=" flex flex-col gap-2">
-                            <button
-                                onClick={() => setUpdateObjectiveId(-1)}
-                                className="self-end text-red-500"
-                            >
-                                <CircleX/>
-                            </button>
-                            <input
-                                type="text"
-                                placeholder="Objective title"
-                                name="metric"
-                                value={objectiveTitle}
-                                onChange={(e) => setObjectiveTitle(e.target.value)}
-                                className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
-                            />
-                            <button
-                                onClick={() => handleUpdateObjective(updateObjectiveId)}
-                                className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
-                            >
-                                Update
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )
-            }
+                <UpdateObjectiveModal
+                    objectiveTitle={objectiveTitle}
+                    updateObjectiveId={updateObjectiveId}
+                    setUpdateObjectiveId={setUpdateObjectiveId}
+                    setObjectiveTitle={setObjectiveTitle}
+                />
+            )}
             {(showAddKrModal.show) && (
-                <div
-                    className="inset-0 fixed flex bg-gray-500 bg-opacity-50 justify-center items-center">
-                    <div className="bg-white rounded-md p-4 ">
-                        <div className=" flex flex-col gap-2">
-                            <button
-                                onClick={() => setShowAddKrModal({show: false, objectiveId: -1})}
-                                className="self-end text-red-500"
-                            >
-                                <CircleX/>
-                            </button>
-                            <KeyResultInputs handleChange={handleKrChange}
-                                             keyResult={keyResult}/>
-                            <div className="flex justify-between">
-                                <input
-                                    type="text"
-                                    placeholder="Metric Type"
-                                    name="metric"
-                                    value={keyResult.metric}
-                                    onChange={(e) =>
-                                        handleKrChange(e.target.name, e.target.value)
-                                    }
-                                    className="border border-gray-400 px-2 py-1 w-fit focus:outline-none rounded-md focus:ring-2 focus:ring-blue-200"
-                                />
-                                <button
-                                    onClick={() => handleAddKeyResult(showAddKrModal.objectiveId)}
-                                    className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
-                                >
-                                    Add
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <AddUpdateKeyResultModal
+                    btnText="Add"
+                    onSubmitClick={() => handleAddKeyResult(showAddKrModal.objectiveId)}
+                    closeModal={() => setShowAddKrModal({objectiveId: -1, show: false})}
+                    keyResult={keyResult}
+                    setKeyResult={setKeyResult}
+                />
             )}
         </div>
     );
