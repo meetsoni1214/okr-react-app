@@ -1,0 +1,6 @@
+services:
+  frontend:
+    image: 475075013331.dkr.ecr.eu-north-1.amazonaws.com/okr/okrfrontend:latest
+    container_name: okr_frontend
+    ports:
+      - "80:5173"
