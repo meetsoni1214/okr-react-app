@@ -2,14 +2,22 @@ import {useContext, useState} from "react";
 import {addOkrDataToDb} from "../db/Okr-store.ts";
 import {OkrContext} from "../provider/OkrProvider.tsx";
 import {InsertObjectiveType, KeyResultType, ObjectiveType} from "../types/OkrTypes.ts";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function OkrForm() {
     const {objectives, setObjectives} = useContext(OkrContext);
     const [objectiveTitle, setObjectiveTitle] = useState<string>("");
 
     const addObjective = () => {
-        if (objectiveTitle === "") return;
+        if (objectiveTitle === "") {
+            toast.error("Objective Name cannot be empty!", {
+                autoClose: 3000,
+                position: "top-right"
+            });
+            return;
+        }
+
         const objectiveToBeAdded: InsertObjectiveType = {
             title: objectiveTitle
         };
@@ -58,6 +66,7 @@ export default function OkrForm() {
                     className="bg-green-500 p-2 mt-2 self-center text-white rounded-md hover:bg-green-600"
                     onClick={addObjective}
                 >
+                    <ToastContainer />
                     Add objective
                 </button>
             </div>
