@@ -1,6 +1,7 @@
 import {CircleX} from "lucide-react";
 import KeyResultInputs from "./KeyResultInputs.tsx";
 import {KeyResultType} from "../types/OkrTypes.ts";
+import {ToastContainer} from "react-toastify";
 
 type KeyResultModalProps = {
     closeModal: () => void,
@@ -52,6 +53,7 @@ function AddUpdateKeyResultModal({
                             onClick={onSubmitClick}
                             className="bg-blue-500 px-2 py-1 self-center text-white rounded-md hover:bg-blue-600"
                         >
+                            <ToastContainer />
                             {btnText}
                         </button>
                     </div>

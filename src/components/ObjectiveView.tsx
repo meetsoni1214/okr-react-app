@@ -16,6 +16,7 @@ import {OkrContext} from "../provider/OkrProvider.tsx";
 import KeyResultDisplay from "./KeyResultDisplay.tsx";
 import AddUpdateKeyResultModal from "./AddUpdateKeyResultModal.tsx";
 import UpdateObjectiveModal from "./UpdateObjectiveModal.tsx";
+import {toast} from "react-toastify";
 
 type ObjectiveProps = {
     obj: ObjectiveType,
@@ -87,6 +88,14 @@ function ObjectiveView({
     }
 
     async function handleUpdateKeyResult(objectiveId: number) {
+        if (keyResult.title === "") {
+            toast.error("Key-Result title cannot be empty!", {
+                position: "top-right",
+                autoClose: 3000
+            });
+            return;
+        }
+
         const kr: UpdateKeyResultType = {
             title: keyResult.title,
             current_value: Number(keyResult.currentValue),
@@ -114,6 +123,14 @@ function ObjectiveView({
     }
 
     async function handleAddKeyResult(objId: number) {
+        if (keyResult.title === "") {
+            toast.error("Key-Result title cannot be empty!", {
+                position: "top-right",
+                autoClose: 3000
+            });
+            return;
+        }
+
         const keyResultToBeAdded: InsertKeyResultType = {
             title: keyResult.title,
             initial_value: Number(keyResult.initialValue),
