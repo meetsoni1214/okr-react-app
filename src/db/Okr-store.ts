@@ -1,11 +1,12 @@
 import {InsertKeyResultType, InsertObjectiveType, ObjectiveResponseType, UpdateKeyResultType} from "../types/OkrTypes";
+import {API_URL} from "../constants/Constants.ts";
 
 const HTTP_STATUS = {
     not_found: 404
 }
 
 async function getOkrsData(): Promise<ObjectiveResponseType[]> {
-    const response = await fetch("http://13.61.151.187:3001/objectives/", {
+    const response = await fetch(`${API_URL}/objectives/`, {
         method: "GET"
     });
     return await response.json();
@@ -14,7 +15,7 @@ async function getOkrsData(): Promise<ObjectiveResponseType[]> {
 async function addOkrDataToDb(
     objective: InsertObjectiveType
 ): Promise<ObjectiveResponseType> {
-    const response = await fetch("http://13.61.151.187:3001/objectives/", {
+    const response = await fetch(`${API_URL}/objectives/`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -25,7 +26,7 @@ async function addOkrDataToDb(
 }
 
 async function deleteOkrFromDb(_id: number): Promise<void>{
-    const response = await fetch(`http://13.61.151.187:3001/objectives/${_id}`, {
+    const response = await fetch(`${API_URL}/objectives/${_id}`, {
         method: "DELETE",
     })
     if (response.status === HTTP_STATUS.not_found) {
@@ -35,7 +36,7 @@ async function deleteOkrFromDb(_id: number): Promise<void>{
 }
 
 async function updateOkrToDb(updatedOkr: InsertObjectiveType, id: number): Promise<void> {
-    const response = await fetch(`http://13.61.151.187:3001/objectives/${id}`, {
+    const response = await fetch(`${API_URL}/objectives/${id}`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -46,7 +47,7 @@ async function updateOkrToDb(updatedOkr: InsertObjectiveType, id: number): Promi
 }
 
 async function updateKeyResultToDb(updatedKeyResult: UpdateKeyResultType, id: number): Promise<void> {
-    const response = await fetch(`http://13.61.151.187:3001/key-results/${id}`, {
+    const response = await fetch(`${API_URL}/key-results/${id}`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -57,7 +58,7 @@ async function updateKeyResultToDb(updatedKeyResult: UpdateKeyResultType, id: nu
 }
 
 async function addKeyResultsToDb(keyResults: InsertKeyResultType[]): Promise<void> {
-    const response = await fetch(`http://13.61.151.187:3001/key-results/`, {
+    const response = await fetch(`${API_URL}/key-results/`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -68,7 +69,7 @@ async function addKeyResultsToDb(keyResults: InsertKeyResultType[]): Promise<voi
 }
 
 async function deleteKeyResultFromDb(id: number): Promise<void> {
-    const response = await fetch(`http://13.61.151.187:3001/key-results/${id}`, {
+    const response = await fetch(`${API_URL}/key-results/${id}`, {
         method: "DELETE",
     })
     if (response.status === HTTP_STATUS.not_found) {
@@ -78,7 +79,7 @@ async function deleteKeyResultFromDb(id: number): Promise<void> {
 }
 
 async function deleteKeyResultsFromDb(objective_id: number): Promise<void> {
-    const response = await fetch(`http://13.61.151.187:3001/key-results/delete-all/${objective_id}`, {
+    const response = await fetch(`${API_URL}/key-results/delete-all/${objective_id}`, {
         method: "DELETE",
     })
     if (response.status === HTTP_STATUS.not_found) {
